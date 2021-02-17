@@ -10,15 +10,34 @@ Globals:
     Timeout: 3
 
 Resources:
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: v1
+      BinaryMediaTypes:
+        - "*/*"
+
   HtmlToPdfFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/
       Handler: app.lambdaHandler
       Runtime: nodejs12.x
+      Layers:
+        - !Ref HeadlessBrowserLayer
       Events:
         HelloWorld:
           Type: Api
           Properties:
+            RestApiId: !Ref ApiGateway
             Path: /html-to-pdf
             Method: get
+      Timeout: 30
+      MemorySize: 512
+
+  HeadlessBrowserLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      ContentUri: ./layer
+    Metadata:
+      BuildMethod: nodejs12.x
